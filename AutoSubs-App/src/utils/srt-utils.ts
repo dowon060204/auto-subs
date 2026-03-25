@@ -18,7 +18,7 @@ export function generateSrt(subtitles: Subtitle[]): string {
         throw new Error('Subtitles must be an array');
     }
 
-    return subtitles
+    const srtContent = subtitles
         .map((sub, i) => {
             // Log each subtitle being processed
             console.log(`Processing subtitle ${i}:`, sub);
@@ -42,6 +42,9 @@ export function generateSrt(subtitles: Subtitle[]): string {
         })
         .filter(Boolean) // Remove any empty strings from invalid entries
         .join("\n");
+
+    // Add UTF-8 BOM to prevent encoding issues with Korean/CJK characters on Windows
+    return '\uFEFF' + srtContent;
 }
 
 // --- Helper function for robust SRT parsing ---
