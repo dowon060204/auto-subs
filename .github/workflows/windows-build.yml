@@ -15,10 +15,11 @@ jobs:
           node-version: 18
 
       - name: Install Vulkan SDK
-        uses: humbletim/setup-vulkan-sdk@v1.2.0
-        with:
-          vulkan-query: latest
-          vulkan-use-cache: false
+        run: |
+          choco install vulkan-sdk -y
+          $vulkanPath = (Get-ChildItem -Path "C:\VulkanSDK" -Directory | Sort-Object Name -Descending | Select-Object -First 1).FullName
+          echo "VULKAN_SDK=$vulkanPath" >> $env:GITHUB_ENV
+          echo "$vulkanPath\Bin" >> $env:GITHUB_PATH
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
