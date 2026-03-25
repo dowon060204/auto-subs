@@ -379,10 +379,12 @@ pub async fn run_transcription_pipeline(
                     approx_start, approx_end
                 );
             }
-        
+        // AutoSubs-App/src-tauri/crates/transcription-engine/src/engines/whisper.rs
             // Choose word timestamps strategy and apply offset where needed in one place
             let translated = options.whisper_to_english.unwrap_or(false);
-            let word_timestamps: Vec<WordTimestamp> = if translated {
+            let is_cjk_bug_prone = detected_lang.as_deref().map(|l| matches!(l, "ko" | "ja" | "zh" | "zh-CN" | "zh-TW" | "yue")).unwrap_or(false);
+
+            let word_timestamps: Vec<WordTimestamp> = if translated || is_cjk_bug_prone {
                 // Interpolated times are already absolute via approx_* (which include base_offset)
                 interpolate_word_timestamps(&text, approx_start, approx_end)
             } else {
@@ -390,7 +392,6 @@ pub async fn run_transcription_pipeline(
                 for t in &mut w { t.start += base_offset; t.end += base_offset; } // Offset all word timestamps by base_offset
                 w
             };
-
             // Derive segment bounds with sensible fallbacks, and include words if any
             let seg_start = word_timestamps.first().map(|w| w.start).unwrap_or(approx_start);
             let seg_end = word_timestamps.last().map(|w| w.end).unwrap_or(approx_end);
